@@ -20,6 +20,8 @@ import org.jclouds.openstack.glance.v1_0.domain.ContainerFormat;
 import org.jclouds.openstack.glance.v1_0.domain.DiskFormat;
 import org.jclouds.openstack.glance.v1_0.domain.StoreType;
 
+import static org.jclouds.openstack.glance.v1_0.options.ImageField.COPY_FROM;
+
 /**
  * 
  * <h2></h2>Usage</h2> The recommended way to instantiate a CreateImageOptions object is to statically import
@@ -44,6 +46,14 @@ public class CreateImageOptions extends UpdateImageOptions {
     */
    public CreateImageOptions id(String id) {
       headers.put(ImageField.ID.asHeader(), id);
+      return this;
+   }
+
+   /**
+    * @param url the url of the image to be copied into openstack
+    */
+   public UpdateImageOptions copyFrom(String url) {
+      headers.put(COPY_FROM.asGlanceHeader(), url);
       return this;
    }
 
@@ -130,6 +140,13 @@ public class CreateImageOptions extends UpdateImageOptions {
        */
       public static CreateImageOptions property(String key, String value) {
          return CreateImageOptions.class.cast(new CreateImageOptions().property(key, value));
+      }
+
+      /**
+       * @see org.jclouds.openstack.glance.v1_0.options.CreateImageOptions#copyFrom(String)
+       */
+      public static CreateImageOptions copyFrom(String url) {
+         return CreateImageOptions.class.cast(new CreateImageOptions().copyFrom(url));
       }
    }
 }
