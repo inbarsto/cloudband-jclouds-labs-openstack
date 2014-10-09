@@ -20,6 +20,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.jclouds.openstack.glance.v1_0.options.CreateImageOptions.Builder.copyFrom;
 
 import javax.ws.rs.core.MediaType;
 
@@ -202,6 +203,28 @@ public class ImageApiExpectTest extends BaseGlanceExpectTest {
             new ParseImageDetailsTest().expected());
    }
 
+   public void testImageCreateCopyFrom() throws Exception {
+      HttpRequest get = HttpRequest.builder().method("POST")
+            .endpoint("https://glance.jclouds.org:9292/v1.0/images")
+            .addHeader("x-image-meta-name", "test")
+            .addHeader("Accept", MediaType.APPLICATION_JSON)
+            .addHeader("x-glance-api-copy-from", "http://1.1.1.1/Installs/Templates/tiny/tinylinux-v2.qcow2")
+            .addHeader("X-Auth-Token", authToken)
+            .payload(payloadFromStringWithContentType("", MediaType.APPLICATION_OCTET_STREAM)).build();
+
+      HttpResponse createResponse = HttpResponse.builder().statusCode(200)
+            .payload(payloadFromResource("/image.json")).build();
+
+      GlanceApi apiWhenExist = requestsSendResponses(keystoneAuthWithUsernameAndPassword,
+            responseWithKeystoneAccess, versionNegotiationRequest, versionNegotiationResponse,
+            get, createResponse);
+
+      assertEquals(apiWhenExist.getConfiguredZones(), ImmutableSet.of("az-1.region-a.geo-1"));
+
+      assertEquals(apiWhenExist.getImageApiForZone("az-1.region-a.geo-1").create("test", new StringPayload(""), copyFrom("http://1.1.1.1/Installs/Templates/tiny/tinylinux-v2.qcow2")),
+            new ParseImageDetailsTest().expected());
+}      
+      
    @Test(expectedExceptions = AuthorizationException.class)
    public void testCreateWhenResponseIs4xx() throws Exception {
       HttpRequest get = HttpRequest.builder().method("POST")
